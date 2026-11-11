@@ -30,10 +30,12 @@ function hubLayer() {
         const k = rects.findIndex(r => inRect(e.x, e.y, r));
         if (k >= 0 && e.t === 'move' && k !== sel) { sel = k; }
         if (k >= 0 && e.t === 'down') { sel = k; sfx('ok'); popLayer(L); HUB_ITEMS[k].go(); return; }
+        if (e.t === 'down' && inRect(e.x, e.y, SAVE_BTN)) { sfx('ok'); saveTransfer(); return; }
       }
       if (take('left')) { sel = (sel + HUB_ITEMS.length - 1) % HUB_ITEMS.length; sfx('cursor'); }
       if (take('right')) { sel = (sel + 1) % HUB_ITEMS.length; sfx('cursor'); }
       if (take('ok')) { sfx('ok'); popLayer(L); HUB_ITEMS[sel].go(); }
+      if (take('down') || take('back')) { sfx('ok'); saveTransfer(); }
     },
     draw() {
       const t = (performance.now() - t0) / 1000;
@@ -74,13 +76,16 @@ function hubLayer() {
         wrapText(it.sub, r[2] - 36, 15).forEach((ln, k) => text(ln, cx, r[1] + 250 + k * 20, { size: 15, align: 'center', color: '#c8bca0' }));
         ctx.restore();
       });
-      text('← → 選擇　Z 確定　也可以用滑鼠點', W / 2, H - 46, { size: 17, align: 'center', color: '#a09080' });
+      text('← → 選擇　Z 確定　也可以用滑鼠或手指點', W / 2, H - 76, { size: 16, align: 'center', color: '#a09080' });
+      panel(...SAVE_BTN, { bg: 'rgba(40,30,60,0.95)' }); text('存檔搬家（電腦 ⇄ 手機）', W / 2, SAVE_BTN[1] + 8, { size: 17, align: 'center', color: '#ffd77a' });
     },
   };
   return L;
 }
-function hubOpen() { layers.length = 0; fade = 0; pushLayer(hubLayer()); try { playMusic('title'); } catch (e) {} }
-function hubStartRpg() { layers.length = 0; titleScreen(); }
+const SAVE_BTN = [W / 2 - 150, H - 50, 300, 38];
+function setPad(on) { const pad = document.getElementById('pad'); if (pad && ('ontouchstart' in window)) pad.style.display = on ? 'block' : 'none'; }
+function hubOpen() { setPad(false); layers.length = 0; fade = 0; pushLayer(hubLayer()); try { playMusic('title'); } catch (e) {} }
+function hubStartRpg() { setPad(true); layers.length = 0; titleScreen(); }
 // 開機時 main.js 已經開了標題畫面：換成主選單
 hubOpen();
 
@@ -145,3 +150,46 @@ choose = function (items, opt = {}) {
     });
   });
 };
+
+// ---------- 手機：旋轉提示、音量按鈕 ----------
+if ('ontouchstart' in window) { const r = document.getElementById('rotate'); if (r) r.classList.add('on'); }
+{ const b = document.getElementById('padSound'); if (b) b.addEventListener('touchstart', e => { e.preventDefault(); if (!busy) run(() => soundPanel()); }); }
+
+// ---------- 存檔搬家：匯出成檔案、從檔案匯入 ----------
+const SAVE_PICKER = (() => { const i = document.createElement('input'); i.type = 'file'; i.accept = '.json,.txt,application/json,text/plain'; i.style.display = 'none'; document.body.appendChild(i); return i; })();
+function pickSaveFile() {
+  return new Promise(res => {
+    SAVE_PICKER.value = '';
+    SAVE_PICKER.onchange = () => { const f = SAVE_PICKER.files[0]; if (!f) return res(null); const rd = new FileReader(); rd.onload = () => res(String(rd.result)); rd.onerror = () => res(null); rd.readAsText(f); };
+    SAVE_PICKER.click();
+  });
+}
+async function saveTransfer() {
+  const bg = pushLayer(hubLayer()); // 背景維持主選單畫面
+  bg.update = () => {};
+  const c = await choose(['匯出存檔（下載成檔案）', '匯入存檔（從檔案讀取）', '取消'], { title: '存檔搬家', w: 380, x: W / 2 - 190, y: 200, desc: k => ['把這台裝置的冒險進度存成一個檔案，傳到另一台裝置（例如用 LINE 傳給自己）。', '選一個匯出的存檔檔案，這台裝置的進度會被換成檔案裡的進度。', ''][k] });
+  if (c === 0) {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) await say('這台裝置還沒有冒險存檔喔。');
+    else {
+      const pack = JSON.stringify({ game: 'my_mystic_world', v: 1, at: new Date().toISOString(), save: raw, td: localStorage.getItem('my_mystic_world_td'), vol: localStorage.getItem('my_mystic_world_volume') });
+      try { const a = document.createElement('a'); a.download = '我的神奇世界存檔.json'; a.href = URL.createObjectURL(new Blob([pack], { type: 'application/json' })); document.body.appendChild(a); a.click(); a.remove(); await say(['存檔已下載成「我的神奇世界存檔.json」。', '把這個檔案傳到另一台裝置，在主選單選「存檔搬家 → 匯入存檔」就能接著玩。']); }
+      catch (e) { await say('匯出失敗了……'); }
+    }
+  }
+  if (c === 1) {
+    const txt = await pickSaveFile();
+    let pack = null; try { pack = txt && JSON.parse(txt); } catch (e) {}
+    let save = null; try { save = pack && pack.save ? JSON.parse(pack.save) : (pack && pack.party ? pack : null); } catch (e) {}
+    if (!save || !Array.isArray(save.party)) await say(txt == null ? '沒有選到檔案。' : '這個檔案不是「我的神奇世界」的存檔。');
+    else {
+      const k = await choose(['確定匯入', '取消'], { title: `匯入「${save.name}」的存檔？這台裝置原本的進度會被覆蓋！`, w: 560, x: W / 2 - 280, y: 220 });
+      if (k === 0) {
+        localStorage.setItem(SAVE_KEY, pack.save || JSON.stringify(save));
+        if (pack.td) localStorage.setItem('my_mystic_world_td', pack.td);
+        await say(`匯入完成！選「幻紋大陸冒險」→「繼續冒險」就能接著玩 ${save.name} 的冒險。`);
+      }
+    }
+  }
+  popLayer(bg);
+}

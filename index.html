@@ -2,19 +2,29 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#05030a">
 <title>我的神奇世界</title>
 <style>
   html, body { margin: 0; height: 100%; background: #05030a; overflow: hidden; }
   body { display: flex; align-items: center; justify-content: center; }
   canvas { display: block; image-rendering: auto; box-shadow: 0 0 40px rgba(200,160,80,0.25); }
   #pad { display: none; position: fixed; inset: auto 0 12px 0; pointer-events: none; }
+  #pad button.small { width: 50px; height: 50px; font-size: 15px; }
+  #rotate { display: none; position: fixed; inset: 0; z-index: 50; background: rgba(5,3,10,0.94); color: #ffd77a; font: bold 22px "Microsoft JhengHei","PingFang TC",sans-serif; text-align: center; align-items: center; justify-content: center; flex-direction: column; gap: 14px; }
+  #rotate .ph { width: 70px; height: 120px; border: 4px solid #ffd77a; border-radius: 12px; animation: turn 1.6s ease-in-out infinite; }
+  @keyframes turn { 0%,30% { transform: rotate(0); } 60%,100% { transform: rotate(-90deg); } }
+  @media (orientation: portrait) and (pointer: coarse) { #rotate.on { display: flex; } }
+  body, canvas, #pad button { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
   #pad button { pointer-events: auto; position: absolute; width: 64px; height: 64px; border-radius: 50%; border: 2px solid #c8a050;
     background: rgba(20,12,30,0.6); color: #ffd77a; font-size: 22px; font-weight: bold; }
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
+<div id="rotate"><div class="ph"></div><div>請把手機橫過來玩</div><div style="font-size:15px;color:#c8bca0">橫放畫面比較大，按鈕也比較好按</div></div>
 <div id="pad">
   <button data-k="up" style="left:76px;bottom:140px">▲</button>
   <button data-k="left" style="left:10px;bottom:74px">◀</button>
@@ -22,6 +32,9 @@
   <button data-k="down" style="left:76px;bottom:8px">▼</button>
   <button data-k="back" style="right:96px;bottom:20px">X</button>
   <button data-k="ok" style="right:16px;bottom:80px">Z</button>
+  <button data-k="run" class="small" style="right:150px;bottom:90px">跑</button>
+  <button data-k="hint" class="small" style="right:16px;bottom:calc(100vh - 76px)">提示</button>
+  <button id="padSound" class="small" style="right:72px;bottom:calc(100vh - 76px)">♪</button>
 </div>
 <script src="js/data.js"></script>
 <script src="js/sprites.js"></script>
