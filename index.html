@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>我的神奇世界</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #05030a; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; image-rendering: auto; box-shadow: 0 0 40px rgba(200,160,80,0.25); }
+  #pad { display: none; position: fixed; inset: auto 0 12px 0; pointer-events: none; }
+  #pad button { pointer-events: auto; position: absolute; width: 64px; height: 64px; border-radius: 50%; border: 2px solid #c8a050;
+    background: rgba(20,12,30,0.6); color: #ffd77a; font-size: 22px; font-weight: bold; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="pad">
+  <button data-k="up" style="left:76px;bottom:140px">▲</button>
+  <button data-k="left" style="left:10px;bottom:74px">◀</button>
+  <button data-k="right" style="left:142px;bottom:74px">▶</button>
+  <button data-k="down" style="left:76px;bottom:8px">▼</button>
+  <button data-k="back" style="right:96px;bottom:20px">X</button>
+  <button data-k="ok" style="right:16px;bottom:80px">Z</button>
+</div>
+<script src="js/data.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/monsters2.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/maps.js"></script>
+<script src="js/chapters.js"></script>
+<script src="js/battle.js"></script>
+<script src="js/main.js"></script>
+<script src="js/extras.js"></script>
+<script src="js/render.js"></script>
+<script src="js/beasts.js"></script>
+<script src="js/beasts2.js"></script>
+<script src="js/beasts3.js"></script>
+<script src="js/vfx.js"></script>
+<script src="js/art3.js"></script>
+<script src="js/stages.js"></script>
+<script src="js/hot.js"></script>
+<script src="js/style.js"></script>
+<script src="js/realms.js"></script>
+<script src="js/vfx2.js"></script>
+<script src="js/side.js"></script>
+<script src="js/expand.js"></script>
+<script src="js/mech.js"></script>
+<script src="js/art4.js"></script>
+<script src="js/xiyou.js"></script>
+<script src="js/journey.js"></script>
+<script src="js/tiangong.js"></script>
+<script src="js/ninja.js"></script>
+<script src="js/sagas2.js"></script>
+<script src="js/launcher.js"></script>
+<script src="js/td.js"></script>
+<script src="js/paint.js"></script>
+</body>
+</html>
